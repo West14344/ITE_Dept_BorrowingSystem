@@ -1,0 +1,164 @@
+{% extends 'borrowing/base.html' %}
+{% block page_title %}My Records{% endblock %}
+{% block content %}
+
+{% if due_soon %}
+<div class="alert alert-warning border-0 rounded-3 mb-4" style="background:#fff8e1;">
+  <div class="fw-bold mb-2">
+    <i class="bi bi-bell-fill me-2 text-warning"></i>{{ due_soon_count }} item(s) almost due!
+  </div>
+  {% for r in due_soon %}
+  <div class="d-flex justify-content-between align-items-center py-1 border-bottom">
+    <span>
+      <i class="bi bi-laptop me-2 text-warning"></i>
+      <strong>{{ r.equipment.name }}</strong> due on
+      <strong>{{ r.due_date }}{% if r.due_time %} at {{ r.due_time|time:"h:i A" }}{% endif %}</strong>
+    </span>
+    <a href="{% url 'return_item' r.pk %}" class="btn btn-sm btn-warning">Return Now</a>
+  </div>
+  {% endfor %}
+</div>
+{% endif %}
+
+<div class="d-flex justify-content-between align-items-center mb-4">
+  <div class="d-flex gap-2">
+    <a href="{% url 'user_records' %}"  class="btn btn-sm {% if not status %}btn-primary{% else %}btn-outline-secondary{% endif %}">All</a>
+    <a href="?status=borrowed"          class="btn btn-sm {% if status == 'borrowed' %}btn-primary{% else %}btn-outline-secondary{% endif %}">Borrowed</a>
+    <a href="?status=returned"          class="btn btn-sm {% if status == 'returned' %}btn-primary{% else %}btn-outline-secondary{% endif %}">Returned</a>
+    <a href="?status=late"              class="btn btn-sm {% if status == 'late' %}btn-warning{% else %}btn-outline-warning{% endif %}">Late</a>
+    <a href="?status=overdue"           class="btn btn-sm {% if status == 'overdue' %}btn-danger{% else %}btn-outline-danger{% endif %}">Overdue</a>
+    <a href="?status=lost"              class="btn btn-sm {% if status == 'lost' %}btn-dark{% else %}btn-outline-dark{% endif %}">Lost</a>
+  </div>
+  <a href="{% url 'borrow_item' %}" class="btn btn-primary">
+    <i class="bi bi-plus-circle me-1"></i>Borrow Equipment
+  </a>
+</div>
+
+<div class="card">
+  <div class="card-body p-0">
+    <table class="table table-hover mb-0">
+      <thead class="table-light">
+        <tr>
+          <th>Equipment</th>
+          <th>Date Borrowed</th>
+          <th>Return By</th>
+          <th>Date Returned</th>
+          <th>Status</th>
+          <th>Action</th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for r in records %}
+        <tr>
+          <td class="fw-semibold">{{ r.equipment.name }}</td>
+          <td>{{ r.date_borrowed|date:"M d, Y h:i A" }}</td>
+          <td>
+            {{ r.due_date }}
+            {% if r.due_time %}
+              <div class="text-muted small">{{ r.due_time|time:"h:i A" }}</div>
+            {% endif %}
+            {% if r.status == 'overdue' %}
+              <div class="badge-overdue" style="font-size:0.75rem;">⚠️ Overdue</div>
+            {% endif %}
+          </td>
+          <td>{{ r.date_returned|date:"M d, Y h:i A"|default:"—" }}</td>
+          <td>
+            <span class="badge-{{ r.status }}">{{ r.get_status_display }}</span>
+          </td>
+          <td>
+            {% if r.status == 'borrowed' or r.status == 'overdue' %}
+              <!-- Return Button -->
+              <button class="btn btn-sm btn-success me-1"
+                onclick="showReturnModal('{% url 'return_item' r.pk %}', '{{ r.equipment.name }}', '{{ r.due_date }}')">
+                <i class="bi bi-arrow-return-left me-1"></i>Return
+              </button>
+              <!-- Lost Button -->
+              <button class="btn btn-sm btn-danger"
+                onclick="showLostModal('{% url 'report_lost' r.pk %}', '{{ r.equipment.name }}')">
+                <i class="bi bi-x-circle me-1"></i>Lost
+              </button>
+            {% else %}
+              <span class="text-muted small">—</span>
+            {% endif %}
+          </td>
+        </tr>
+        {% empty %}
+        <tr>
+          <td colspan="6" class="text-center text-muted py-4">No records found.</td>
+        </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+</div>
+
+<!-- Return Modal -->
+<div class="modal fade" id="returnModal" tabindex="-1">
+  <div class="modal-dialog modal-dialog-centered">
+    <div class="modal-content border-0 rounded-4 shadow-lg">
+      <div class="modal-body text-center py-5 px-4">
+        <div style="width:70px;height:70px;background:#e8f5e9;border-radius:50%;display:flex;align-items:center;justify-content:center;margin:0 auto 20px;">
+          <i class="bi bi-arrow-return-left text-success" style="font-size:2rem;"></i>
+        </div>
+        <h5 class="fw-bold mb-2">Confirm Return</h5>
+        <p class="text-muted mb-1">Returning:</p>
+        <p class="fw-bold fs-5 mb-1" id="returnEquipName"></p>
+        <p class="text-muted small mb-1">Due: <span id="returnDueDate"></span></p>
+        <p class="text-muted small mb-4" id="returnNote"></p>
+        <div class="d-flex gap-2 justify-content-center">
+          <button class="btn btn-outline-secondary px-4" data-bs-dismiss="modal">Cancel</button>
+          <a id="returnConfirmBtn" href="#" class="btn btn-success px-4">
+            <i class="bi bi-check-circle me-1"></i>Yes, Return
+          </a>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Lost Modal -->
+<div class="modal fade" id="lostModal" tabindex="-1">
+  <div class="modal-dialog modal-dialog-centered">
+    <div class="modal-content border-0 rounded-4 shadow-lg">
+      <div class="modal-body text-center py-5 px-4">
+        <div style="width:70px;height:70px;background:#fce4ec;border-radius:50%;display:flex;align-items:center;justify-content:center;margin:0 auto 20px;">
+          <i class="bi bi-x-circle-fill text-danger" style="font-size:2rem;"></i>
+        </div>
+        <h5 class="fw-bold mb-2">Report as Lost</h5>
+        <p class="text-muted mb-1">You are reporting as lost:</p>
+        <p class="fw-bold fs-5 mb-3" id="lostEquipName"></p>
+        <p class="text-muted small mb-4">⚠️ This cannot be undone. The equipment will be marked as lost and quantity will not be restored.</p>
+        <form id="lostForm" method="post">
+          {% csrf_token %}
+          <div class="d-flex gap-2 justify-content-center">
+            <button type="button" class="btn btn-outline-secondary px-4" data-bs-dismiss="modal">Cancel</button>
+            <button type="submit" class="btn btn-danger px-4">
+              <i class="bi bi-x-circle me-1"></i>Yes, Report Lost
+            </button>
+          </div>
+        </form>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script>
+  function showReturnModal(url, equip, dueDate) {
+    const today    = new Date().toISOString().split('T')[0];
+    const isLate   = today > dueDate;
+    document.getElementById('returnEquipName').textContent  = equip;
+    document.getElementById('returnDueDate').textContent    = dueDate;
+    document.getElementById('returnNote').innerHTML         = isLate
+      ? '<span style="color:#c62828;">⚠️ You are returning this LATE. Status will be marked as "Returned Late".</span>'
+      : '<span style="color:#2e7d32;">✅ On time return.</span>';
+    document.getElementById('returnConfirmBtn').href = url;
+    new bootstrap.Modal(document.getElementById('returnModal')).show();
+  }
+
+  function showLostModal(url, equip) {
+    document.getElementById('lostEquipName').textContent = equip;
+    document.getElementById('lostForm').action           = url;
+    new bootstrap.Modal(document.getElementById('lostModal')).show();
+  }
+</script>
+{% endblock %}

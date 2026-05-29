@@ -1,0 +1,124 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>ITE Borrowing System</title>
+  <link rel="icon" type="image/jpeg" href="{% static 'img/logo.jpg' %}">
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.10.5/font/bootstrap-icons.css" rel="stylesheet">
+  <style>
+    :root { --bs-primary: #6b21a8; --bs-primary-rgb: 107, 33, 168; }
+    body { background: #f0f2f5; font-family: 'Segoe UI', sans-serif; }
+    .text-primary  { color: #6b21a8 !important; }
+    .btn-primary   { background: #6b21a8; border-color: #6b21a8; }
+    .btn-primary:hover { background: #2d1457; border-color: #2d1457; }
+    .sidebar {
+      min-height: 100vh; background: #2d1457;
+      width: 240px; position: fixed; top: 0; left: 0; z-index: 100;
+    }
+    .sidebar .brand {
+      padding: 16px 20px; font-size: 1rem; font-weight: 700;
+      color: #fff; border-bottom: 1px solid #6b21a8;
+      display: flex; align-items: center; gap: 10px;
+    }
+    .sidebar a {
+      color: #d8b4fe; text-decoration: none;
+      display: block; padding: 12px 20px; font-size: 0.9rem;
+    }
+    .sidebar a:hover { background: #6b21a8; color: #fff; }
+    .sidebar .nav-label {
+      padding: 10px 20px 4px; font-size: 0.7rem;
+      text-transform: uppercase; color: #c084fc; letter-spacing: 1px;
+    }
+    .main-content { margin-left: 240px; padding: 30px; }
+    .topbar {
+      background: #fff; padding: 12px 24px; margin: -30px -30px 30px;
+      border-bottom: 1px solid #e0e0e0; display: flex;
+      justify-content: space-between; align-items: center;
+    }
+    .stat-card { border-radius: 12px; padding: 24px; color: #fff; box-shadow: 0 4px 15px rgba(0,0,0,0.1); }
+    .card { border: none; box-shadow: 0 2px 10px rgba(0,0,0,0.07); border-radius: 12px; }
+    .badge-available   { background: #e8f5e9; color: #2e7d32; padding: 5px 10px; border-radius: 20px; font-size: 0.8rem; }
+    .badge-borrowed    { background: #fff3e0; color: #e65100; padding: 5px 10px; border-radius: 20px; font-size: 0.8rem; }
+    .badge-returned    { background: #ede9fe; color: #6b21a8; padding: 5px 10px; border-radius: 20px; font-size: 0.8rem; }
+    .badge-overdue     { background: #fce4ec; color: #c62828; padding: 5px 10px; border-radius: 20px; font-size: 0.8rem; }
+    .badge-maintenance { background: #f3e5f5; color: #6a1b9a; padding: 5px 10px; border-radius: 20px; font-size: 0.8rem; }
+    .badge-late        { background: #fff8e1; color: #f57f17; padding: 5px 10px; border-radius: 20px; font-size: 0.8rem; }
+    .badge-lost        { background: #212121; color: #fff;    padding: 5px 10px; border-radius: 20px; font-size: 0.8rem; }
+    .logout-btn {
+      background: none; border: none; color: #d8b4fe;
+      padding: 12px 20px; font-size: 0.9rem;
+      width: 100%; text-align: left; cursor: pointer;
+      display: block; text-decoration: none;
+    }
+    .logout-btn:hover { background: #6b21a8; color: #fff; }
+    .notif-badge {
+      background: #e53935; color: #fff;
+      border-radius: 50%; padding: 2px 7px;
+      font-size: 0.7rem; margin-left: 6px;
+    }
+  </style>
+</head>
+<body>
+<div class="sidebar">
+  <div class="brand">
+    <img src="{% static 'img/logo.jpg' %}" alt="ITE Logo"
+      style="width:38px;height:38px;border-radius:50%;object-fit:cover;border:2px solid #9333ea;">
+    ITE Borrowing
+  </div>
+  <nav class="mt-2">
+    {% if request.user.is_superuser %}
+    <div class="nav-label">Main</div>
+    <a href="{% url 'dashboard' %}"><i class="bi bi-speedometer2 me-2"></i>Dashboard</a>
+    <div class="nav-label">Manage</div>
+    <a href="{% url 'equipment_list' %}"><i class="bi bi-laptop me-2"></i>Equipment</a>
+    <a href="{% url 'borrower_list' %}"><i class="bi bi-people me-2"></i>Borrowers</a>
+    <a href="{% url 'borrow_records' %}"><i class="bi bi-journal-text me-2"></i>All Records</a>
+    <div class="nav-label">Users</div>
+    <a href="{% url 'pending_users' %}"><i class="bi bi-person-check me-2"></i>Pending Approvals</a>
+    <a href="{% url 'user_list' %}"><i class="bi bi-people-fill me-2"></i>All Users</a>
+    <div class="nav-label">Logs</div>
+    <a href="{% url 'activity_log' %}"><i class="bi bi-clock-history me-2"></i>Activity Log</a>
+    {% else %}
+    <div class="nav-label">Main</div>
+    <a href="{% url 'dashboard' %}"><i class="bi bi-speedometer2 me-2"></i>Dashboard</a>
+    <div class="nav-label">Borrowing</div>
+    <a href="{% url 'borrow_item' %}"><i class="bi bi-box-arrow-up-right me-2"></i>Borrow Equipment</a>
+    <a href="{% url 'user_records' %}">
+      <i class="bi bi-journal-text me-2"></i>My Records
+      {% if due_soon_count %}<span class="notif-badge">{{ due_soon_count }}</span>{% endif %}
+    </a>
+    <div class="nav-label">Account</div>
+    <a href="{% url 'user_activity_log' %}"><i class="bi bi-clock-history me-2"></i>My Activity</a>
+    {% endif %}
+    <a href="{% url 'logout' %}" class="logout-btn">
+      <i class="bi bi-box-arrow-left me-2"></i>Logout
+    </a>
+  </nav>
+</div>
+<div class="main-content">
+  <div class="topbar">
+    <span class="fw-semibold text-muted">{% block page_title %}{% endblock %}</span>
+    <span class="text-muted small">
+      <i class="bi bi-person-circle me-1"></i>{{ request.user.username }}
+      {% if request.user.is_superuser %}
+        <span class="badge ms-1" style="background:#6b21a8;font-size:0.7rem;">Admin</span>
+      {% else %}
+        <span class="badge ms-1" style="background:#2e7d32;font-size:0.7rem;">User</span>
+      {% endif %}
+    </span>
+  </div>
+  {% if messages %}
+    {% for message in messages %}
+      <div class="alert alert-{{ message.tags }} alert-dismissible fade show rounded-3">
+        {{ message }}<button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+      </div>
+    {% endfor %}
+  {% endif %}
+  {% block content %}{% endblock %}
+</div>
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+</body>
+</html>

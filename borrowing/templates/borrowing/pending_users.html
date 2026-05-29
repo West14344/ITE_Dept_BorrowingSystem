@@ -1,0 +1,109 @@
+{% extends 'borrowing/base.html' %}
+{% block page_title %}Pending User Approvals{% endblock %}
+{% block content %}
+
+<div class="card">
+  <div class="card-header bg-white fw-bold py-3">
+    <i class="bi bi-person-exclamation me-2 text-primary"></i>Pending User Approvals
+    <span class="badge ms-2" style="background:#6b21a8;">{{ pending|length }}</span>
+  </div>
+  <div class="card-body p-0">
+    <table class="table table-hover mb-0">
+      <thead class="table-light">
+        <tr>
+          <th>Full Name</th>
+          <th>Email</th>
+          <th>Date Registered</th>
+          <th>Actions</th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for p in pending %}
+        <tr>
+          <td class="fw-semibold">{{ p.user.get_full_name|default:"—" }}</td>
+          <td>{{ p.user.email|default:"—" }}</td>
+          <td>{{ p.created_at|date:"M d, Y h:i A" }}</td>
+          <td>
+            <button class="btn btn-sm btn-success me-1"
+              onclick="showApproveModal('{% url 'approve_user' p.pk %}', '{{ p.user.get_full_name }}')">
+              <i class="bi bi-check-circle me-1"></i>Approve
+            </button>
+            <button class="btn btn-sm btn-danger"
+              onclick="showRejectModal('{% url 'reject_user' p.pk %}', '{{ p.user.get_full_name }}')">
+              <i class="bi bi-x-circle me-1"></i>Reject
+            </button>
+          </td>
+        </tr>
+        {% empty %}
+        <tr>
+          <td colspan="4" class="text-center text-muted py-4">
+            <i class="bi bi-check-circle text-success" style="font-size:2rem;"></i>
+            <br>No pending users. All accounts are approved!
+          </td>
+        </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+</div>
+
+<!-- ✅ Approve Modal -->
+<div class="modal fade" id="approveModal" tabindex="-1">
+  <div class="modal-dialog modal-dialog-centered">
+    <div class="modal-content border-0 rounded-4 shadow-lg">
+      <div class="modal-body text-center py-5 px-4">
+        <div style="width:70px;height:70px;background:#e8f5e9;border-radius:50%;display:flex;align-items:center;justify-content:center;margin:0 auto 20px;">
+          <i class="bi bi-check-circle-fill text-success" style="font-size:2rem;"></i>
+        </div>
+        <h5 class="fw-bold mb-2">Confirm Approval</h5>
+        <p class="text-muted mb-1">You are about to approve</p>
+        <p class="fw-bold fs-5 mb-3" id="approveUserName"></p>
+        <p class="text-muted small mb-4">They will be able to log in to the system immediately.</p>
+        <div class="d-flex gap-2 justify-content-center">
+          <button class="btn btn-outline-secondary px-4" data-bs-dismiss="modal">Cancel</button>
+          <a id="approveConfirmBtn" href="#" class="btn btn-success px-4">
+            <i class="bi bi-check-circle me-1"></i>Yes, Approve
+          </a>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ❌ Reject Modal -->
+<div class="modal fade" id="rejectModal" tabindex="-1">
+  <div class="modal-dialog modal-dialog-centered">
+    <div class="modal-content border-0 rounded-4 shadow-lg">
+      <div class="modal-body text-center py-5 px-4">
+        <div style="width:70px;height:70px;background:#fce4ec;border-radius:50%;display:flex;align-items:center;justify-content:center;margin:0 auto 20px;">
+          <i class="bi bi-exclamation-triangle-fill text-danger" style="font-size:2rem;"></i>
+        </div>
+        <h5 class="fw-bold mb-2">Reject User</h5>
+        <p class="text-muted mb-1">You are about to reject</p>
+        <p class="fw-bold fs-5 mb-3" id="rejectUserName"></p>
+        <p class="text-muted small mb-4">⚠️ This action cannot be undone. The account will be permanently deleted.</p>
+        <div class="d-flex gap-2 justify-content-center">
+          <button class="btn btn-outline-secondary px-4" data-bs-dismiss="modal">Cancel</button>
+          <a id="rejectConfirmBtn" href="#" class="btn btn-danger px-4">
+            <i class="bi bi-x-circle me-1"></i>Yes, Reject
+          </a>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script>
+  function showApproveModal(url, name) {
+    document.getElementById('approveUserName').textContent = name;
+    document.getElementById('approveConfirmBtn').href = url;
+    new bootstrap.Modal(document.getElementById('approveModal')).show();
+  }
+
+  function showRejectModal(url, name) {
+    document.getElementById('rejectUserName').textContent = name;
+    document.getElementById('rejectConfirmBtn').href = url;
+    new bootstrap.Modal(document.getElementById('rejectModal')).show();
+  }
+</script>
+{% endblock %}

@@ -1,0 +1,47 @@
+{% extends 'borrowing/base.html' %}
+{% block page_title %}My Activity{% endblock %}
+{% block content %}
+
+<div class="card">
+  <div class="card-header bg-white fw-bold py-3 d-flex justify-content-between align-items-center">
+    <span><i class="bi bi-clock-history me-2 text-primary"></i>My Activity Log</span>
+    <span class="badge" style="background:#6b21a8;">{{ logs|length }} entries</span>
+  </div>
+  <div class="card-body p-0">
+    <table class="table table-hover mb-0">
+      <thead class="table-light">
+        <tr>
+          <th>Activity</th>
+          <th>Date & Time</th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for log in logs %}
+        <tr>
+          <td>
+            {% if '✅' in log.action %}
+              <span class="badge-available me-2">✅</span>
+            {% elif '⚠️' in log.action %}
+              <span class="badge-overdue me-2">⚠️</span>
+            {% elif '❌' in log.action %}
+              <span class="badge-borrowed me-2">❌</span>
+            {% elif '📦' in log.action %}
+              <span class="badge-returned me-2">📦</span>
+            {% endif %}
+            {{ log.action }}
+          </td>
+          <td class="text-muted small">{{ log.timestamp|date:"M d, Y h:i A" }}</td>
+        </tr>
+        {% empty %}
+        <tr>
+          <td colspan="2" class="text-center text-muted py-4">
+            <i class="bi bi-clock" style="font-size:2rem;"></i>
+            <br><br>No activity yet.
+          </td>
+        </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+</div>
+{% endblock %}

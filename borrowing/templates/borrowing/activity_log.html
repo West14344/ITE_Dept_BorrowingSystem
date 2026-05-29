@@ -1,0 +1,38 @@
+{% extends 'borrowing/base.html' %}
+{% block page_title %}Activity Log{% endblock %}
+{% block content %}
+
+<div class="card">
+  <div class="card-header bg-white fw-bold py-3 d-flex justify-content-between align-items-center">
+    <span><i class="bi bi-clock-history me-2 text-primary"></i>Admin Activity Log</span>
+    <span class="badge" style="background:#6b21a8;">{{ logs|length }} entries</span>
+  </div>
+  <div class="card-body p-0">
+    <table class="table table-hover mb-0">
+      <thead class="table-light">
+        <tr>
+          <th>Admin</th>
+          <th>Action</th>
+          <th>Date & Time</th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for log in logs %}
+        <tr>
+          <td>
+            <i class="bi bi-person-circle me-1 text-primary"></i>
+            <strong>{{ log.admin.get_full_name|default:log.admin.username }}</strong>
+          </td>
+          <td>{{ log.action }}</td>
+          <td class="text-muted small">{{ log.timestamp|date:"M d, Y h:i A" }}</td>
+        </tr>
+        {% empty %}
+        <tr>
+          <td colspan="3" class="text-center text-muted py-4">No activity recorded yet.</td>
+        </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+</div>
+{% endblock %}

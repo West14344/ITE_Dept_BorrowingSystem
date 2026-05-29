@@ -1,0 +1,136 @@
+{% extends 'borrowing/base.html' %}
+{% block page_title %}Borrow Equipment{% endblock %}
+{% block content %}
+
+{% if unavailable %}
+<div class="modal fade show d-block" tabindex="-1" style="background:rgba(0,0,0,0.5);">
+  <div class="modal-dialog modal-dialog-centered">
+    <div class="modal-content border-0 rounded-4 shadow-lg">
+      <div class="modal-body text-center py-5 px-4">
+        <div style="width:70px;height:70px;background:#fce4ec;border-radius:50%;display:flex;align-items:center;justify-content:center;margin:0 auto 20px;">
+          <i class="bi bi-exclamation-triangle-fill text-danger" style="font-size:2rem;"></i>
+        </div>
+        <h5 class="fw-bold mb-2">Item Not Available</h5>
+        <p class="text-muted">Sorry, <strong>{{ equipment_name }}</strong> is currently not available.</p>
+        <button class="btn btn-danger px-4 mt-2" onclick="this.closest('.modal').remove()">
+          <i class="bi bi-arrow-left me-1"></i>Go Back
+        </button>
+      </div>
+    </div>
+  </div>
+</div>
+{% endif %}
+
+<div class="row justify-content-center">
+  <div class="col-md-7">
+    <div class="card">
+      <div class="card-header bg-white fw-bold py-3">
+        <i class="bi bi-box-arrow-up-right me-2 text-primary"></i>Borrow Equipment
+      </div>
+      <div class="card-body">
+        <div class="alert mb-4" style="background:#f3e8ff;border-left:4px solid #6b21a8;border-radius:8px;">
+          <div class="fw-semibold text-primary"><i class="bi bi-person-circle me-2"></i>Borrowing as:</div>
+          <div class="mt-1">
+            <strong>{{ request.user.get_full_name|default:request.user.username }}</strong>
+            <span class="text-muted ms-2 small">{{ request.user.email }}</span>
+          </div>
+        </div>
+        <form method="post">
+          {% csrf_token %}
+          {% if form.non_field_errors %}
+            <div class="alert alert-danger">{{ form.non_field_errors }}</div>
+          {% endif %}
+          <div class="mb-3">
+            <label class="form-label fw-semibold"><i class="bi bi-tags me-1 text-primary"></i>Category</label>
+            <select class="form-select" id="id_category" name="category">
+              <option value="">-- Select Category --</option>
+              {% for cat in categories %}
+              <option value="{{ cat.id }}"
+                {% if form.category.value == cat.id|stringformat:"s" %}selected{% endif %}>
+                {{ cat.name }}
+              </option>
+              {% endfor %}
+            </select>
+          </div>
+          <div class="mb-3">
+            <label class="form-label fw-semibold"><i class="bi bi-laptop me-1 text-primary"></i>Equipment</label>
+            <select class="form-select" id="id_equipment" name="equipment">
+              <option value="">-- Select Category First --</option>
+            </select>
+            <div id="qty_info" class="text-muted small mt-1"></div>
+          </div>
+          <div class="mb-3">
+            <label class="form-label fw-semibold"><i class="bi bi-building me-1 text-primary"></i>Department / Office</label>
+            {{ form.department }}
+            {% if form.department.errors %}<div class="text-danger small">{{ form.department.errors }}</div>{% endif %}
+          </div>
+          <div class="mb-3">
+            <label class="form-label fw-semibold"><i class="bi bi-calendar me-1 text-primary"></i>Return Date</label>
+            {{ form.due_date }}
+            {% if form.due_date.errors %}<div class="text-danger small">{{ form.due_date.errors }}</div>{% endif %}
+          </div>
+          <div class="mb-3">
+            <label class="form-label fw-semibold"><i class="bi bi-clock me-1 text-primary"></i>Return Time</label>
+            {{ form.due_time }}
+            {% if form.due_time.errors %}<div class="text-danger small">{{ form.due_time.errors }}</div>{% endif %}
+          </div>
+          <div class="mb-4">
+            <label class="form-label fw-semibold"><i class="bi bi-chat-text me-1 text-primary"></i>Remarks</label>
+            {{ form.remarks }}
+          </div>
+          <div class="d-flex gap-2">
+            <button type="submit" class="btn btn-primary"><i class="bi bi-box-arrow-up-right me-1"></i>Confirm Borrow</button>
+            <a href="{% url 'dashboard' %}" class="btn btn-outline-secondary">Cancel</a>
+          </div>
+        </form>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script>
+  const categorySelect  = document.getElementById('id_category');
+  const equipmentSelect = document.getElementById('id_equipment');
+  const qtyInfo         = document.getElementById('qty_info');
+
+  categorySelect.addEventListener('change', function () {
+    const categoryId = this.value;
+    equipmentSelect.innerHTML = '<option value="">Loading...</option>';
+    qtyInfo.textContent = '';
+    if (!categoryId) {
+      equipmentSelect.innerHTML = '<option value="">-- Select Category First --</option>';
+      return;
+    }
+    fetch(`/system/get-equipment/?category_id=${categoryId}`)
+      .then(res => res.json())
+      .then(data => {
+        equipmentSelect.innerHTML = '<option value="">-- Select Equipment --</option>';
+        if (data.equipment.length === 0) {
+          equipmentSelect.innerHTML = '<option value="">No available equipment in this category</option>';
+        } else {
+          data.equipment.forEach(e => {
+            const option       = document.createElement('option');
+            option.value       = e.id;
+            option.textContent = `${e.name} (${e.serial_no}) — Qty: ${e.quantity}`;
+            equipmentSelect.appendChild(option);
+          });
+        }
+      });
+  });
+
+  equipmentSelect.addEventListener('change', function () {
+    const selected = this.options[this.selectedIndex];
+    if (selected && selected.value) {
+      const qty = selected.textContent.match(/Qty: (\d+)/);
+      if (qty) {
+        const count = parseInt(qty[1]);
+        qtyInfo.innerHTML = count <= 2
+          ? `<span style="color:#e65100;">⚠️ Only ${count} left in stock!</span>`
+          : `<span style="color:#2e7d32;">✅ ${count} available</span>`;
+      }
+    } else {
+      qtyInfo.textContent = '';
+    }
+  });
+</script>
+{% endblock %}

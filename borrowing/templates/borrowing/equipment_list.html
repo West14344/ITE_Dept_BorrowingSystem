@@ -1,0 +1,46 @@
+{% extends 'borrowing/base.html' %}
+{% block page_title %}Equipment{% endblock %}
+{% block content %}
+
+<div class="d-flex justify-content-between align-items-center mb-4">
+  <form class="d-flex gap-2" method="get">
+    <input type="text" name="q" value="{{ query }}" class="form-control" placeholder="Search equipment...">
+    <button class="btn btn-primary">Search</button>
+  </form>
+  <div class="d-flex gap-2">
+    <a href="{% url 'category_list' %}" class="btn btn-outline-primary"><i class="bi bi-tags me-1"></i>Categories</a>
+    <a href="{% url 'equipment_add' %}" class="btn btn-primary"><i class="bi bi-plus-circle me-1"></i>Add Equipment</a>
+  </div>
+</div>
+
+<div class="card">
+  <div class="card-body p-0">
+    <table class="table table-hover mb-0">
+      <thead class="table-light">
+        <tr><th>Name</th><th>Category</th><th>Serial No.</th><th>Quantity</th><th>Status</th><th>Actions</th></tr>
+      </thead>
+      <tbody>
+        {% for e in equipment %}
+        <tr>
+          <td class="fw-semibold">{{ e.name }}</td>
+          <td>{{ e.category|default:"—" }}</td>
+          <td><code>{{ e.serial_no }}</code></td>
+          <td>
+            {% if e.quantity == 0 %}<span class="badge-overdue">⚠️ 0 — Not Available</span>
+            {% elif e.quantity <= 2 %}<span class="badge-borrowed">⚠️ {{ e.quantity }} — Low Stock</span>
+            {% else %}<span class="badge-available">{{ e.quantity }}</span>{% endif %}
+          </td>
+          <td><span class="badge-{{ e.status }}">{{ e.get_status_display }}</span></td>
+          <td>
+            <a href="{% url 'equipment_edit' e.pk %}" class="btn btn-sm btn-outline-primary me-1"><i class="bi bi-pencil"></i></a>
+            <a href="{% url 'equipment_delete' e.pk %}" class="btn btn-sm btn-outline-danger"><i class="bi bi-trash"></i></a>
+          </td>
+        </tr>
+        {% empty %}
+        <tr><td colspan="6" class="text-center text-muted py-4">No equipment found.</td></tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+</div>
+{% endblock %}

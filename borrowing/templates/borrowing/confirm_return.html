@@ -1,0 +1,27 @@
+{% extends 'borrowing/base.html' %}
+{% block page_title %}Return Item{% endblock %}
+{% block content %}
+
+<div class="row justify-content-center">
+  <div class="col-md-5">
+    <div class="card border-success">
+      <div class="card-header bg-success text-white fw-bold">
+        <i class="bi bi-arrow-return-left me-2"></i>Confirm Return
+      </div>
+      <div class="card-body text-center py-4">
+        <p class="fs-5">Confirm return of</p>
+        <p class="fw-bold fs-4 text-success">{{ record.equipment.name }}</p>
+        <p class="text-muted">Borrowed by <strong>{{ record.borrower.name }}</strong></p>
+        <p class="text-muted small">Due date: {{ record.due_date }}</p>
+        <form method="post" class="d-flex gap-2 justify-content-center mt-3">
+          {% csrf_token %}
+          <button type="submit" class="btn btn-success">
+            <i class="bi bi-check-circle me-1"></i>Yes, Return
+          </button>
+          <a href="{% url 'borrow_records' %}" class="btn btn-outline-secondary">Cancel</a>
+        </form>
+      </div>
+    </div>
+  </div>
+</div>
+{% endblock %}

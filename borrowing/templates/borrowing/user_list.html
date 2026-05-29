@@ -1,0 +1,62 @@
+{% extends 'borrowing/base.html' %}
+{% block page_title %}All Users{% endblock %}
+{% block content %}
+
+<div class="card">
+  <div class="card-header bg-white fw-bold py-3 d-flex justify-content-between align-items-center">
+    <span><i class="bi bi-people-fill me-2 text-primary"></i>Registered Users</span>
+    <span class="badge" style="background:#6b21a8;">{{ users|length }} users</span>
+  </div>
+  <div class="card-body p-0">
+    <table class="table table-hover mb-0">
+      <thead class="table-light">
+        <tr>
+          <th>Full Name</th>
+          <th>Email</th>
+          <th>Date Joined</th>
+          <th>Status</th>
+          <th>Actions</th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for u in users %}
+        <tr>
+          <td class="fw-semibold">{{ u.get_full_name|default:"—" }}</td>
+          <td>{{ u.email }}</td>
+          <td>{{ u.date_joined|date:"M d, Y h:i A" }}</td>
+          <td>
+            {% if not u.is_active %}
+              <span class="badge-overdue">🔒 Disabled</span>
+            {% elif u.profile.is_approved %}
+              <span class="badge-available">✅ Active</span>
+            {% else %}
+              <span class="badge-borrowed">⏳ Pending</span>
+            {% endif %}
+          </td>
+          <td>
+            <a href="{% url 'disable_user' u.pk %}"
+               class="btn btn-sm {% if u.is_active %}btn-outline-warning{% else %}btn-outline-success{% endif %} me-1"
+               onclick="return confirm('{% if u.is_active %}🔒 Disable {{ u.get_full_name }}?\n\nThey will not be able to log in.{% else %}🔓 Enable {{ u.get_full_name }}?\n\nThey will be able to log in again.{% endif %}')">
+              {% if u.is_active %}
+                <i class="bi bi-lock me-1"></i>Disable
+              {% else %}
+                <i class="bi bi-unlock me-1"></i>Enable
+              {% endif %}
+            </a>
+            <a href="{% url 'delete_user' u.pk %}"
+               class="btn btn-sm btn-outline-danger"
+               onclick="return confirm('🗑️ Delete User\n\nAre you sure you want to permanently delete {{ u.get_full_name }}?\n\nThis cannot be undone.')">
+              <i class="bi bi-trash me-1"></i>Delete
+            </a>
+          </td>
+        </tr>
+        {% empty %}
+        <tr>
+          <td colspan="5" class="text-center text-muted py-4">No registered users yet.</td>
+        </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+</div>
+{% endblock %}
