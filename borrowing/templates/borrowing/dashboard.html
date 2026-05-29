@@ -4,28 +4,26 @@
 
 {% if request.user.is_superuser %}
 
-
-
   <div class="row g-3 mb-4">
-    <div class="col-md-3">
+    <div class="col-6 col-md-3">
       <div class="stat-card" style="background:linear-gradient(135deg,#2d1457,#6b21a8)">
         <div class="fs-1 fw-bold">{{ total_equipment }}</div>
         <div class="opacity-75"><i class="bi bi-laptop me-1"></i>Total Equipment</div>
       </div>
     </div>
-    <div class="col-md-3">
+    <div class="col-6 col-md-3">
       <div class="stat-card" style="background:linear-gradient(135deg,#2e7d32,#43a047)">
         <div class="fs-1 fw-bold">{{ available }}</div>
         <div class="opacity-75"><i class="bi bi-check-circle me-1"></i>Available</div>
       </div>
     </div>
-    <div class="col-md-3">
+    <div class="col-6 col-md-3">
       <div class="stat-card" style="background:linear-gradient(135deg,#e65100,#fb8c00)">
         <div class="fs-1 fw-bold">{{ borrowed }}</div>
         <div class="opacity-75"><i class="bi bi-box-arrow-up-right me-1"></i>Borrowed</div>
       </div>
     </div>
-    <div class="col-md-3">
+    <div class="col-6 col-md-3">
       <div class="stat-card" style="background:linear-gradient(135deg,#c62828,#e53935)">
         <div class="fs-1 fw-bold">{{ overdue }}</div>
         <div class="opacity-75"><i class="bi bi-exclamation-circle me-1"></i>Overdue</div>
@@ -34,35 +32,43 @@
   </div>
 
   <div class="row g-3">
-    <div class="col-md-8">
+    <div class="col-12 col-md-8">
       <div class="card">
         <div class="card-header bg-white fw-bold py-3 d-flex justify-content-between align-items-center">
           <span><i class="bi bi-clock-history me-2 text-primary"></i>Recent Transactions</span>
           <a href="{% url 'borrow_records' %}" class="btn btn-sm btn-primary">View All</a>
         </div>
         <div class="card-body p-0">
-          <table class="table table-hover mb-0">
-            <thead class="table-light">
-              <tr><th>Equipment</th><th>Borrowed By</th><th>Date</th><th>Due</th><th>Status</th></tr>
-            </thead>
-            <tbody>
-              {% for r in recent_records %}
-              <tr>
-                <td>{{ r.equipment.name }}</td>
-                <td>{{ r.processed_by.get_full_name|default:r.processed_by.username }}</td>
-                <td>{{ r.date_borrowed|date:"M d, Y" }}</td>
-                <td>{{ r.due_date }}</td>
-                <td><span class="badge-{{ r.status }}">{{ r.get_status_display }}</span></td>
-              </tr>
-              {% empty %}
-              <tr><td colspan="5" class="text-center text-muted py-4">No records yet.</td></tr>
-              {% endfor %}
-            </tbody>
-          </table>
+          <div class="table-responsive">
+            <table class="table table-hover mb-0">
+              <thead class="table-light">
+                <tr>
+                  <th>Equipment</th>
+                  <th>Borrowed By</th>
+                  <th>Date</th>
+                  <th>Due</th>
+                  <th>Status</th>
+                </tr>
+              </thead>
+              <tbody>
+                {% for r in recent_records %}
+                <tr>
+                  <td>{{ r.equipment.name }}</td>
+                  <td>{{ r.processed_by.get_full_name|default:r.processed_by.username }}</td>
+                  <td>{{ r.date_borrowed|date:"M d, Y" }}</td>
+                  <td>{{ r.due_date }}</td>
+                  <td><span class="badge-{{ r.status }}">{{ r.get_status_display }}</span></td>
+                </tr>
+                {% empty %}
+                <tr><td colspan="5" class="text-center text-muted py-4">No records yet.</td></tr>
+                {% endfor %}
+              </tbody>
+            </table>
+          </div>
         </div>
       </div>
     </div>
-    <div class="col-md-4">
+    <div class="col-12 col-md-4">
       <div class="card">
         <div class="card-header bg-white fw-bold py-3">
           <i class="bi bi-clock-history me-2 text-primary"></i>Recent Activity
@@ -85,33 +91,39 @@
 
   {% if due_soon %}
   <div class="alert alert-warning border-0 rounded-3 mb-4" style="background:#fff8e1;">
-    <div class="fw-bold mb-2"><i class="bi bi-bell-fill me-2 text-warning"></i>Due Soon Reminder!</div>
+    <div class="fw-bold mb-2">
+      <i class="bi bi-bell-fill me-2 text-warning"></i>{{ due_soon_count }} item(s) almost due!
+    </div>
     {% for r in due_soon %}
     <div class="d-flex justify-content-between align-items-center py-1 border-bottom">
-      <span><i class="bi bi-laptop me-2 text-warning"></i><strong>{{ r.equipment.name }}</strong> due on <strong>{{ r.due_date }}{% if r.due_time %} at {{ r.due_time|time:"h:i A" }}{% endif %}</strong></span>
-      <a href="{% url 'return_item' r.pk %}" class="btn btn-sm btn-warning">Return Now</a>
+      <span class="small">
+        <i class="bi bi-laptop me-2 text-warning"></i>
+        <strong>{{ r.equipment.name }}</strong> due on
+        <strong>{{ r.due_date }}{% if r.due_time %} at {{ r.due_time|time:"h:i A" }}{% endif %}</strong>
+      </span>
+      <a href="{% url 'return_item' r.pk %}" class="btn btn-sm btn-warning ms-2">Return</a>
     </div>
     {% endfor %}
   </div>
   {% endif %}
 
   <div class="row g-3 mb-4">
-    <div class="col-md-4">
+    <div class="col-4">
       <div class="stat-card" style="background:linear-gradient(135deg,#2d1457,#6b21a8)">
         <div class="fs-1 fw-bold">{{ total_borrowed }}</div>
-        <div class="opacity-75"><i class="bi bi-box-arrow-up-right me-1"></i>Currently Borrowed</div>
+        <div class="opacity-75" style="font-size:0.8rem;"><i class="bi bi-box-arrow-up-right me-1"></i>Borrowed</div>
       </div>
     </div>
-    <div class="col-md-4">
+    <div class="col-4">
       <div class="stat-card" style="background:linear-gradient(135deg,#2e7d32,#43a047)">
         <div class="fs-1 fw-bold">{{ total_returned }}</div>
-        <div class="opacity-75"><i class="bi bi-check-circle me-1"></i>Returned</div>
+        <div class="opacity-75" style="font-size:0.8rem;"><i class="bi bi-check-circle me-1"></i>Returned</div>
       </div>
     </div>
-    <div class="col-md-4">
+    <div class="col-4">
       <div class="stat-card" style="background:linear-gradient(135deg,#c62828,#e53935)">
         <div class="fs-1 fw-bold">{{ overdue }}</div>
-        <div class="opacity-75"><i class="bi bi-exclamation-circle me-1"></i>Overdue</div>
+        <div class="opacity-75" style="font-size:0.8rem;"><i class="bi bi-exclamation-circle me-1"></i>Overdue</div>
       </div>
     </div>
   </div>
@@ -122,31 +134,43 @@
       <a href="{% url 'user_records' %}" class="btn btn-sm btn-primary">View All</a>
     </div>
     <div class="card-body p-0">
-      <table class="table table-hover mb-0">
-        <thead class="table-light">
-          <tr><th>Equipment</th><th>Date Borrowed</th><th>Return By</th><th>Status</th><th>Action</th></tr>
-        </thead>
-        <tbody>
-          {% for r in my_records %}
-          <tr>
-            <td class="fw-semibold">{{ r.equipment.name }}</td>
-            <td>{{ r.date_borrowed|date:"M d, Y h:i A" }}</td>
-            <td>
-              {{ r.due_date }}
-              {% if r.due_time %}<div class="text-muted small">{{ r.due_time|time:"h:i A" }}</div>{% endif %}
-            </td>
-            <td><span class="badge-{{ r.status }}">{{ r.get_status_display }}</span></td>
-            <td>
-              {% if r.status == 'borrowed' or r.status == 'overdue' %}
-                <a href="{% url 'return_item' r.pk %}" class="btn btn-sm btn-outline-success"><i class="bi bi-arrow-return-left me-1"></i>Return</a>
-              {% else %}<span class="text-muted small">—</span>{% endif %}
-            </td>
-          </tr>
-          {% empty %}
-          <tr><td colspan="5" class="text-center text-muted py-4">No borrow records yet.</td></tr>
-          {% endfor %}
-        </tbody>
-      </table>
+      <div class="table-responsive">
+        <table class="table table-hover mb-0">
+          <thead class="table-light">
+            <tr>
+              <th>Equipment</th>
+              <th>Date Borrowed</th>
+              <th>Return By</th>
+              <th>Status</th>
+              <th>Action</th>
+            </tr>
+          </thead>
+          <tbody>
+            {% for r in my_records %}
+            <tr>
+              <td class="fw-semibold">{{ r.equipment.name }}</td>
+              <td>{{ r.date_borrowed|date:"M d, Y" }}<div class="text-muted small">{{ r.date_borrowed|date:"h:i A" }}</div></td>
+              <td>
+                {{ r.due_date }}
+                {% if r.due_time %}<div class="text-muted small">{{ r.due_time|time:"h:i A" }}</div>{% endif %}
+              </td>
+              <td><span class="badge-{{ r.status }}">{{ r.get_status_display }}</span></td>
+              <td>
+                {% if r.status == 'borrowed' or r.status == 'overdue' %}
+                  <a href="{% url 'return_item' r.pk %}" class="btn btn-sm btn-outline-success">
+                    <i class="bi bi-arrow-return-left"></i>
+                  </a>
+                {% else %}
+                  <span class="text-muted small">—</span>
+                {% endif %}
+              </td>
+            </tr>
+            {% empty %}
+            <tr><td colspan="5" class="text-center text-muted py-4">No borrow records yet.</td></tr>
+            {% endfor %}
+          </tbody>
+        </table>
+      </div>
     </div>
   </div>
 
