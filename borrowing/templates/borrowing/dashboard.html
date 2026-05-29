@@ -4,29 +4,29 @@
 
 {% if request.user.is_superuser %}
 
-  <div class="row g-3 mb-4">
+  <div class="row g-2 mb-3">
     <div class="col-6 col-md-3">
-      <div class="stat-card" style="background:linear-gradient(135deg,#2d1457,#6b21a8)">
-        <div class="fs-1 fw-bold">{{ total_equipment }}</div>
-        <div class="opacity-75"><i class="bi bi-laptop me-1"></i>Total Equipment</div>
+      <div class="stat-card h-100" style="background:linear-gradient(135deg,#2d1457,#6b21a8)">
+        <div class="fw-bold" style="font-size:1.8rem;">{{ total_equipment }}</div>
+        <div class="opacity-75 small"><i class="bi bi-laptop me-1"></i>Total</div>
       </div>
     </div>
     <div class="col-6 col-md-3">
-      <div class="stat-card" style="background:linear-gradient(135deg,#2e7d32,#43a047)">
-        <div class="fs-1 fw-bold">{{ available }}</div>
-        <div class="opacity-75"><i class="bi bi-check-circle me-1"></i>Available</div>
+      <div class="stat-card h-100" style="background:linear-gradient(135deg,#2e7d32,#43a047)">
+        <div class="fw-bold" style="font-size:1.8rem;">{{ available }}</div>
+        <div class="opacity-75 small"><i class="bi bi-check-circle me-1"></i>Available</div>
       </div>
     </div>
     <div class="col-6 col-md-3">
-      <div class="stat-card" style="background:linear-gradient(135deg,#e65100,#fb8c00)">
-        <div class="fs-1 fw-bold">{{ borrowed }}</div>
-        <div class="opacity-75"><i class="bi bi-box-arrow-up-right me-1"></i>Borrowed</div>
+      <div class="stat-card h-100" style="background:linear-gradient(135deg,#e65100,#fb8c00)">
+        <div class="fw-bold" style="font-size:1.8rem;">{{ borrowed }}</div>
+        <div class="opacity-75 small"><i class="bi bi-box-arrow-up-right me-1"></i>Borrowed</div>
       </div>
     </div>
     <div class="col-6 col-md-3">
-      <div class="stat-card" style="background:linear-gradient(135deg,#c62828,#e53935)">
-        <div class="fs-1 fw-bold">{{ overdue }}</div>
-        <div class="opacity-75"><i class="bi bi-exclamation-circle me-1"></i>Overdue</div>
+      <div class="stat-card h-100" style="background:linear-gradient(135deg,#c62828,#e53935)">
+        <div class="fw-bold" style="font-size:1.8rem;">{{ overdue }}</div>
+        <div class="opacity-75 small"><i class="bi bi-exclamation-circle me-1"></i>Overdue</div>
       </div>
     </div>
   </div>
@@ -46,7 +46,6 @@
                   <th>Equipment</th>
                   <th>Borrowed By</th>
                   <th>Date</th>
-                  <th>Due</th>
                   <th>Status</th>
                 </tr>
               </thead>
@@ -55,12 +54,11 @@
                 <tr>
                   <td>{{ r.equipment.name }}</td>
                   <td>{{ r.processed_by.get_full_name|default:r.processed_by.username }}</td>
-                  <td>{{ r.date_borrowed|date:"M d, Y" }}</td>
-                  <td>{{ r.due_date }}</td>
+                  <td>{{ r.date_borrowed|date:"M d" }}</td>
                   <td><span class="badge-{{ r.status }}">{{ r.get_status_display }}</span></td>
                 </tr>
                 {% empty %}
-                <tr><td colspan="5" class="text-center text-muted py-4">No records yet.</td></tr>
+                <tr><td colspan="4" class="text-center text-muted py-4">No records yet.</td></tr>
                 {% endfor %}
               </tbody>
             </table>
@@ -77,7 +75,7 @@
           {% for log in recent_logs %}
           <div class="px-3 py-2 border-bottom">
             <div class="small">{{ log.action }}</div>
-            <div class="text-muted" style="font-size:0.75rem;">{{ log.timestamp|date:"M d, Y h:i A" }}</div>
+            <div class="text-muted" style="font-size:0.72rem;">{{ log.timestamp|date:"M d, Y h:i A" }}</div>
           </div>
           {% empty %}
           <div class="text-center text-muted py-4 small">No activity yet.</div>
@@ -90,16 +88,16 @@
 {% else %}
 
   {% if due_soon %}
-  <div class="alert alert-warning border-0 rounded-3 mb-4" style="background:#fff8e1;">
-    <div class="fw-bold mb-2">
+  <div class="alert alert-warning border-0 rounded-3 mb-3" style="background:#fff8e1;">
+    <div class="fw-bold mb-2 small">
       <i class="bi bi-bell-fill me-2 text-warning"></i>{{ due_soon_count }} item(s) almost due!
     </div>
     {% for r in due_soon %}
     <div class="d-flex justify-content-between align-items-center py-1 border-bottom">
       <span class="small">
-        <i class="bi bi-laptop me-2 text-warning"></i>
-        <strong>{{ r.equipment.name }}</strong> due on
-        <strong>{{ r.due_date }}{% if r.due_time %} at {{ r.due_time|time:"h:i A" }}{% endif %}</strong>
+        <i class="bi bi-laptop me-1 text-warning"></i>
+        <strong>{{ r.equipment.name }}</strong>
+        <br><span class="text-muted">Due: {{ r.due_date }}{% if r.due_time %} {{ r.due_time|time:"h:i A" }}{% endif %}</span>
       </span>
       <a href="{% url 'return_item' r.pk %}" class="btn btn-sm btn-warning ms-2">Return</a>
     </div>
@@ -107,23 +105,23 @@
   </div>
   {% endif %}
 
-  <div class="row g-3 mb-4">
+  <div class="row g-2 mb-3">
     <div class="col-4">
-      <div class="stat-card" style="background:linear-gradient(135deg,#2d1457,#6b21a8)">
-        <div class="fs-1 fw-bold">{{ total_borrowed }}</div>
-        <div class="opacity-75" style="font-size:0.8rem;"><i class="bi bi-box-arrow-up-right me-1"></i>Borrowed</div>
+      <div class="stat-card h-100" style="background:linear-gradient(135deg,#2d1457,#6b21a8)">
+        <div class="fw-bold" style="font-size:1.8rem;">{{ total_borrowed }}</div>
+        <div class="opacity-75 small"><i class="bi bi-box-arrow-up-right me-1"></i>Borrowed</div>
       </div>
     </div>
     <div class="col-4">
-      <div class="stat-card" style="background:linear-gradient(135deg,#2e7d32,#43a047)">
-        <div class="fs-1 fw-bold">{{ total_returned }}</div>
-        <div class="opacity-75" style="font-size:0.8rem;"><i class="bi bi-check-circle me-1"></i>Returned</div>
+      <div class="stat-card h-100" style="background:linear-gradient(135deg,#2e7d32,#43a047)">
+        <div class="fw-bold" style="font-size:1.8rem;">{{ total_returned }}</div>
+        <div class="opacity-75 small"><i class="bi bi-check-circle me-1"></i>Returned</div>
       </div>
     </div>
     <div class="col-4">
-      <div class="stat-card" style="background:linear-gradient(135deg,#c62828,#e53935)">
-        <div class="fs-1 fw-bold">{{ overdue }}</div>
-        <div class="opacity-75" style="font-size:0.8rem;"><i class="bi bi-exclamation-circle me-1"></i>Overdue</div>
+      <div class="stat-card h-100" style="background:linear-gradient(135deg,#c62828,#e53935)">
+        <div class="fw-bold" style="font-size:1.8rem;">{{ overdue }}</div>
+        <div class="opacity-75 small"><i class="bi bi-exclamation-circle me-1"></i>Overdue</div>
       </div>
     </div>
   </div>
@@ -139,17 +137,17 @@
           <thead class="table-light">
             <tr>
               <th>Equipment</th>
-              <th>Date Borrowed</th>
+              <th>Borrowed</th>
               <th>Return By</th>
               <th>Status</th>
-              <th>Action</th>
+              <th></th>
             </tr>
           </thead>
           <tbody>
             {% for r in my_records %}
             <tr>
               <td class="fw-semibold">{{ r.equipment.name }}</td>
-              <td>{{ r.date_borrowed|date:"M d, Y" }}<div class="text-muted small">{{ r.date_borrowed|date:"h:i A" }}</div></td>
+              <td>{{ r.date_borrowed|date:"M d" }}<div class="text-muted small">{{ r.date_borrowed|date:"h:i A" }}</div></td>
               <td>
                 {{ r.due_date }}
                 {% if r.due_time %}<div class="text-muted small">{{ r.due_time|time:"h:i A" }}</div>{% endif %}
@@ -161,7 +159,7 @@
                     <i class="bi bi-arrow-return-left"></i>
                   </a>
                 {% else %}
-                  <span class="text-muted small">—</span>
+                  <span class="text-muted">—</span>
                 {% endif %}
               </td>
             </tr>
